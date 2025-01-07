@@ -1,0 +1,4 @@
+X,Y,Z,formation,Azimuth,Dip,Polarity
+50,50,-0.5,soil1,0,0,1
+50,50,-1.0,soil2,0,0,1
+50,50,-1.5,soil3,0,0,1
