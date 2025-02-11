@@ -62,7 +62,7 @@ The following notebooks are provided:
    - `generating_observed_data_via_disba.ipynb`: Simulates observed data (2D profile).
    - `inversion_evolutionary_algorithm.ipynb`: Performs the inversion using an evolutionary algorithm to retrieve the 2D velocity profile.
 
-## 📺 Model Visualizations 📺
+## 📺 Models utilized in Inversion 📺
 
 - #### **MWC Model:** *No compaction*
 

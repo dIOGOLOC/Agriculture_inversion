@@ -3,6 +3,7 @@
 ## Dispersion curve estimative 
 
 import numpy as np
+import random
 from CODES.modeling import calculate_parameters_from_vs
 from CODES.dispersion_curves import estimate_disp_from_velocity_model
 
@@ -34,46 +35,56 @@ def create_velocity_model_from_profile_vs(model_profile):
     
 # ---------------------------------------------------------------------
 
-def create_layers(min_esp, max_esp,max_total=0.002):
-    """
-    Generates a list of random layer thicknesses within specified bounds.
-
-    This function creates a list of layer thicknesses by drawing random values 
-    from a uniform distribution between `min_esp` and `max_esp` until the total 
-    thickness reaches or exceeds `max_total`.
+def create_layers(min_thick_layer, max_thick_layer,max_total=2.0):
+    '''
+    This function generates a list of random layer thicknesses that sum exactly to a specified total (`max_total`). 
+    Each layer thickness is randomly drawn from a uniform distribution between `min_esp` and `max_esp`, 
+    ensuring that all layers meet the minimum thickness requirement (`min_esp`). 
+    The final layer is adjusted so that the total thickness precisely matches `max_total`.
 
     Parameters:
     -----------
-    min_esp : float
-        Minimum thickness of an individual layer (km).
-    max_esp : float
-        Maximum thickness of an individual layer  (km).
-    max_total : float, optional (default=0.002 kilometers)
-        Maximum total thickness of all layers (km).
+    min_thick_layer : float
+        Minimum thickness of an individual layer (m).
+    max_thick_layer : float
+        Maximum thickness of an individual layer  (m).
+    max_total : float, optional (default=2 meters)
+        Maximum total thickness of all layers (m).
 
     Returns:
     --------
     thick_lst : list of float
-        A list of layer thicknesses, each rounded to four decimal places.
-    """
+        A list of layer thicknesses.
+
+    '''
+
+    values = []
+    current_sum = 0.0
     
-    thick_lst = []
-    total = 0.0
+    while True:
+        remaining = round(max_total - current_sum, 2)
+        
+        possible_values = [v for v in [min_thick_layer+tk for tk in np.arange(0.01,max_thick_layer-min_thick_layer,0.01)] if max_thick_layer <= remaining]
 
-    while total < max_total:
-        esp = random.uniform(min_esp, max_esp)
-        thick_lst.append(round(esp, 4)) 
-        total += esp
-        if total >= max_total:
+        if not possible_values:
+            values.append(remaining)
             break
+        
+        else:
+            choice = random.choice(possible_values)
+            values.append(round(choice,2))
+            current_sum = round(current_sum + choice, 1)        
+            
+            if current_sum == max_total:
+                break
 
-    return thick_lst
+    return values
 
 # ------------------------------------------------------------------
 
-def uniform(low_thick, up_thick,low_vels,up_vels):
+def uniform(low_thick, up_thick,max_total,low_vels,up_vels):
     """
-    Generates a random velocity model with layer thicknesses (km) and Vs values (m/s).
+    Generates a random velocity model with layer thicknesses (m) and Vs values (m/s).
 
     This function first creates a set of random layer thicknesses using 
     `create_layers()`, then assigns shear wave velocities (Vs) to each layer 
@@ -82,9 +93,9 @@ def uniform(low_thick, up_thick,low_vels,up_vels):
     Parameters:
     -----------
     low_thick : float
-        Lower bound for layer thickness (km).
+        Lower bound for layer thickness (m).
     up_thick : float
-        Upper bound for layer thickness (km).
+        Upper bound for layer thickness (m).
     low_vels : float
         Lower bound for Vs values (m/s).
     up_vels : float
@@ -107,16 +118,15 @@ def uniform(low_thick, up_thick,low_vels,up_vels):
         toolbox.register("model", uniform, lower_thick, upper_thick, lower_vs, upper_vs)
     """
     
-    thickness_lst = create_layers(low_thick,up_thick)
+    thickness_lst = create_layers(low_thick,up_thick,max_total)
     
     vs_lst = []
     for s in range(1,len(thickness_lst)+1):
         if s == 1:
-            vs_lst.append(np.random.uniform(low_vels,up_vels))
+            vs_lst.append(round(np.random.uniform(low_vels,up_vels)))
         else:
-            vs_lst.append(np.random.uniform(low_vels*(s),up_vels*(s)))
+            vs_lst.append(round(np.random.uniform(low_vels*(s),up_vels*(s))))
     return [thickness_lst,vs_lst]
-
 # ------------------------------------------------------------------
 
 def inversion_objective(individual, true_disp,number_samples=100):
