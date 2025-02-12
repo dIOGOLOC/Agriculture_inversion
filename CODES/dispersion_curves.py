@@ -41,7 +41,10 @@ def create_velocity_model_from_profile(model_profile):
         # thickness, Vp, Vs, density
         # km, km/s, km/s, g/cm3        
 
-        vmodel.append([thickness[idx]/1000,vp[idx]/1000,vs[idx]/1000,dens[idx]/1000])
+        if not idx == len(dens) - 1:
+            vmodel.append([thickness[idx]/1000,vp[idx]/1000,vs[idx]/1000,dens[idx]/1000])
+        else: 
+            vmodel.append([0,vp[idx]/1000,vs[idx]/1000,dens[idx]/1000])
    
     velocity_model = np.array(vmodel)    
 
@@ -62,14 +65,18 @@ def create_velocity_model_from_profile_vs(model_profile):
     '''
     
     vmodel = []
-    for (thickness,vs) in zip(*model_profile):
+    for i, (thickness, vs) in enumerate(zip(*model_profile)):
  
         vp, dens = calculate_parameters_from_vs(vs)
         
         # thickness, Vp, Vs, density
         # km, km/s, km/s, g/cm3
+        if not i == len(model_profile[0]) - 1:
+            vmodel.append([thickness/1000,vp/1000,vs/1000,dens/1000])
+        else: 
+            vmodel.append([00,vp/1000,vs/1000,dens/1000])
 
-        vmodel.append([thickness/1000,vp/1000,vs/1000,dens/1000])
+
    
     velocity_model = np.array(vmodel)    
 
